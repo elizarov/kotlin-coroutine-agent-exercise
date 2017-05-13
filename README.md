@@ -30,7 +30,7 @@
 
 В этом репозитории содержится проект-затравка (открывать в IntelliJ IDEA):
 
-* [Файл Agent.kt](src/main/kotlin/agent/Agent.kt) содержит минимальныое тело Java Agent-а.
+* [Файл Agent.kt](src/main/kotlin/agent/Agent.kt) содержит минимальное тело Java Agent-а.
 * [Файл CoroutineExample.kt](src/test/kotlin/example/CoroutineExample.kt) содержит код тестового приложения.
 
 Сборка и запуск приложения
