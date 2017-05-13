@@ -35,8 +35,14 @@ jar {
     }
 }
 
-task runApp(type: JavaExec, dependsOn: build) {
+task runAll(type: JavaExec, dependsOn: build) {
     classpath = sourceSets.test.runtimeClasspath
     main = "example.CoroutineExampleKt"
+    jvmArgs += ["-javaagent:${jar.getArchivePath()}"]
+}
+
+task run(type: JavaExec, dependsOn: build) {
+    classpath = sourceSets.test.runtimeClasspath
+    main = "example.AnotherDetectExampleKt"
     jvmArgs += ["-javaagent:${jar.getArchivePath()}"]
 }
