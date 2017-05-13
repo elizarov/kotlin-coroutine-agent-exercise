@@ -5,6 +5,7 @@ import java.lang.instrument.ClassFileTransformer
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.ClassVisitor
 import org.objectweb.asm.ClassWriter
+import org.objectweb.asm.ClassWriter.COMPUTE_MAXS
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 import java.security.ProtectionDomain
@@ -18,13 +19,15 @@ class TestCallModifier(api: Int, mv: MethodVisitor?) : MethodVisitor(api, mv) {
 
 
     override fun visitMethodInsn(opcode: Int, owner: String?, name: String?, desc: String?, itf: Boolean) {
-        super.visitMethodInsn(opcode, owner, name, desc, itf)
         if (opcode == desired_opcode && desc == desired_description && owner == desired_owner && name == desired_name) {
-            println("method call spotted " + name)
-            println("\t" + desc)
-            println("\t" + owner)
-            println("\t" + itf)
+            // Code taken http://asm.ow2.org/current/asm-transformations.pdf
+            super.visitFieldInsn(Opcodes.GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;")
+            super.visitLdcInsn("Test detected")
+            super.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/io/PrintStream", "println", "(Ljava/lang/String;)V",
+                    false)
+            super.visitMaxs(-1, -1)
         }
+        super.visitMethodInsn(opcode, owner, name, desc, itf)
     }
 }
 
@@ -35,7 +38,9 @@ class TestCallTransformer : ClassFileTransformer {
                            protectionDomain: ProtectionDomain?,
                            classfileBuffer: ByteArray?): ByteArray {
         val class_reader = ClassReader(classfileBuffer)
-        val class_writer = ClassWriter(class_reader, 0)
+        // COMPUTE_MAXS needed to recompute maximum stack size semi-automatically.
+        // However, `visitMaxs` call is still needed: http://stackoverflow.com/a/28989866/5338270
+        val class_writer = ClassWriter(class_reader, COMPUTE_MAXS)
         val class_visitor = object: ClassVisitor(Opcodes.ASM5, class_writer) {
             override fun visitMethod(access: Int, name: String?,
                                      desc: String?, signature: String?,
@@ -57,6 +62,7 @@ class Agent {
         fun premain(agentArgs: String?, inst: Instrumentation) {
             // TODO: think about class transformers (load -> use -> transform). Need to add test and see if that works.
             // TODO: Also check that class is not modified if it does not contain required call.
+            //      class_writer.toByteArray() always returns non-null - need to optimize. But first, write a benchmark
             // TODO: add test when call is in (static) init section
             inst.addTransformer(TestCallTransformer(), true)
             println("Agent started.")
