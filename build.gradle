@@ -2,7 +2,7 @@ group 'org.jetbrains.kotlin'
 version '1.0-SNAPSHOT'
 
 buildscript {
-    ext.kotlin_version = '1.1.1'
+    ext.kotlin_version = '1.1.2-2'
 
     repositories {
         jcenter()
@@ -19,8 +19,10 @@ repositories {
 }
 
 dependencies {
+    compile "org.ow2.asm:asm-all:5.0.3"
     compile "org.jetbrains.kotlin:kotlin-stdlib-jre8:$kotlin_version"
     compile "org.jetbrains.kotlinx:kotlinx-coroutines-core:0.14"
+    compile "org.reflections:reflections:0.9.11"
 }
 
 kotlin {
@@ -32,6 +34,7 @@ kotlin {
 jar {
     manifest {
         attributes "Premain-Class": "agent.Agent"
+        attributes "Can-Retransform-Classes": true
     }
 }
 
